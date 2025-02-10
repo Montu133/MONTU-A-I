@@ -1,25 +1,23 @@
-// script.js
 document.addEventListener("DOMContentLoaded", function () {
   const chatbotContainer = document.getElementById("chatbot-container");
-  const closeBtn = document.getElementById("close-btn");
+  const chatbotIcon = document.getElementById("chatbot-icon");
+  const closeButton = document.getElementById("close-btn");
   const sendBtn = document.getElementById("send-btn");
   const chatbotInput = document.getElementById("chatbot-input");
   const chatbotMessages = document.getElementById("chatbot-messages");
 
-  const chatbotIcon = document.getElementById("chatbot-icon");
-  const closeButton = document.getElementById("close-btn");
+  const apiKey = "AIzaSyBlYWQFRRnqWOI7rtnSl_4Nb1EDquEo6Hk"; // API Key Gemini AI
 
-  // Toggle chatbot visibility when clicking the icon
-  // Show chatbot when clicking the icon
+  // Tampilkan chatbot saat ikon diklik
   chatbotIcon.addEventListener("click", function () {
     chatbotContainer.classList.remove("hidden");
-    chatbotIcon.style.display = "none"; // Hide chat icon
+    chatbotIcon.style.display = "none";
   });
 
-  // Also toggle when clicking the close button
+  // Sembunyikan chatbot saat tombol close diklik
   closeButton.addEventListener("click", function () {
     chatbotContainer.classList.add("hidden");
-    chatbotIcon.style.display = "flex"; // Show chat icon again
+    chatbotIcon.style.display = "flex";
   });
 
   sendBtn.addEventListener("click", sendMessage);
@@ -47,29 +45,30 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function getBotResponse(userMessage) {
-    const apiKey = "your-api-key"; // Replace with your OpenAI API key
-    const apiUrl = "https://api.openai.com/v1/chat/completions";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     try {
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: userMessage }],
-          max_tokens: 150,
+          contents: [{ parts: [{ text: userMessage }] }],
         }),
       });
 
       const data = await response.json();
-      const botMessage = data.choices[0].message.content;
+
+      if (!data || !data.candidates || data.candidates.length === 0) {
+        throw new Error("Respon tidak valid dari API.");
+      }
+
+      const botMessage = data.candidates[0].content.parts[0].text || "Maaf, saya tidak bisa menjawab saat ini.";
       appendMessage("bot", botMessage);
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      appendMessage("bot", "Sorry, something went wrong. Please try again.");
+      appendMessage("bot", "⚠️ Terjadi kesalahan, coba lagi nanti.");
     }
   }
 });
